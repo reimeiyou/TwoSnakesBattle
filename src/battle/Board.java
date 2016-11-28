@@ -12,24 +12,32 @@ public class Board {
 	 *            the length on x coordinate
 	 * @param y
 	 *            the length on y coordinate
-	 * @param c
-	 *            the coordinate of snake 1, 2
 	 * @param obstacles
 	 *            the forbidden position
 	 */
-	public Board(int x, int y, Coordinate c1, Coordinate c2,
-			Coordinate[] obstacles) {
+	public Board(int x, int y, Coordinate[] obstacles) {
 		board = new Cell[x][y];
 		for(Cell[] item : board){
 			Arrays.fill(item, Cell.Empty);
 		}
-		snake1 = new Snake(c1);
-		snake2 = new Snake(c2);
-		board[c1.x][c1.y] = Cell.Snake1;
-		board[c2.x][c2.y] = Cell.Snake2;
+		snake1 = new Snake(new Coordinate(0, 0));
+		snake2 = new Snake(new Coordinate(x - 1, y - 1));
+		board[0][0] = Cell.Snake1;
+		board[x - 1][y - 1] = Cell.Snake2;
 		for (Coordinate item : obstacles) {
 			board[item.x][item.y] = Cell.Obstacle;
 		}
+	}
+	
+	public Board(Board bd){
+		int x = bd.board.length, y = bd.board[0].length;
+		for(int i = 0; i < x; i++){
+			for(int j = 0; j < y; j++){
+				board[i][j] = bd.board[i][j];
+			}
+		}
+		snake1 = new Snake(bd.snake1);
+		snake2 = new Snake(bd.snake2);
 	}
 
 	/**
@@ -41,7 +49,7 @@ public class Board {
 	 * @param d
 	 *            Move to that direction
 	 */
-	public boolean increaseSnake(boolean one, Direction d) {
+	public boolean increaseSnake(boolean one, Direction d, boolean test) {
 		int x = board.length, y = board[0].length, hx = 0, hy = 0;
 		Cell which = Cell.Empty;
 		if (one) {
@@ -58,24 +66,28 @@ public class Board {
 			if (hy >= y - 1 || board[hx][hy + 1] != Cell.Empty) {
 				return false;
 			}
+			if(test) return true;
 			board[hx][hy + 1] = which;
 			break;
 		case Down:
 			if (hy <= 0 || board[hx][hy - 1] != Cell.Empty) {
 				return false;
 			}
+			if(test) return true;
 			board[hx][hy - 1] = which;
 			break;
 		case Left:
 			if (hx <= 0 || board[hx - 1][hy] != Cell.Empty) {
 				return false;
 			}
+			if(test) return true;
 			board[hx - 1][hy] = which;
 			break;
 		case Right:
 			if (hx >= x - 1 || board[hx + 1][hy] != Cell.Empty) {
 				return false;
 			}
+			if(test) return true;
 			board[hx + 1][hy] = which;
 			break;
 		default:
@@ -89,10 +101,11 @@ public class Board {
 		return true;
 	}
 
-	public boolean moveSnake(boolean one, Direction d) {
-		if (!increaseSnake(one, d)) {
+	public boolean moveSnake(boolean one, Direction d, boolean test) {
+		if (!increaseSnake(one, d, test)) {
 			return false;
 		}
+		if(test) return true;
 		int tx = 0, ty = 0;
 		if (one) {
 			tx = snake1.getTail().x;
@@ -118,10 +131,12 @@ public class Board {
 	}
 
 	public static void main(String[] args) {
-		Coordinate[] obs = new Coordinate[7];
+		Coordinate[] obs = new Coordinate[5];
 		int x = 5, y = 6, nextx = 0, nexty = 0;
 		Random r = new Random();
 		boolean[][] b = new boolean[x][y];
+		b[0][0] = true;
+		b[x - 1][y - 1] = true;
 		for (int i = 0; i < obs.length;) {
 			nextx = r.nextInt(x);
 			nexty = r.nextInt(y);
@@ -131,13 +146,12 @@ public class Board {
 			obs[i] = new Coordinate(nextx, nexty);
 			i++;
 		}
-		Board bd = new Board(x, y, obs[obs.length - 1], obs[obs.length - 2],
-				Arrays.copyOfRange(obs, 0, 5));
+		Board bd = new Board(x, y, obs);
 		bd.print();
-		bd.increaseSnake(false, Direction.Right);
-		bd.increaseSnake(false, Direction.Right);
-		bd.increaseSnake(false, Direction.Up);
-		bd.increaseSnake(false, Direction.Left);
+		bd.increaseSnake(false, Direction.Right, false);
+		bd.increaseSnake(false, Direction.Right, false);
+		bd.increaseSnake(false, Direction.Up, false);
+		bd.increaseSnake(false, Direction.Left, false);
 		bd.print();
 	}
 }
@@ -148,6 +162,10 @@ class Snake {
 	public Snake(Coordinate c) {
 		body = new LinkedList<Coordinate>();
 		body.add(c);
+	}
+	
+	public Snake(Snake s){
+		this.body = new LinkedList<Coordinate>(s.body);
 	}
 
 	public Coordinate getHead() {
