@@ -1,32 +1,46 @@
+package battle;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 public class Board {
 	Snake snake1, snake2;
-
-	private Cell[][] board;
+	private JFrame frame;
+	CellType[][] board;
+	private JLabel[][] labels;
+	private JPanel grids;
+	public JPanel buttons;
+	private boolean running;
+	int height, width;
+	private int numObstacles;
 
 	/**
-	 * @param x
+	 * @param height
 	 *            the length on x coordinate
-	 * @param y
+	 * @param width
 	 *            the length on y coordinate
 	 * @param obstacles
 	 *            the forbidden position
 	 */
-	public Board(int x, int y, Coordinate[] obstacles) {
-		board = new Cell[x][y];
-		for(Cell[] item : board){
-			Arrays.fill(item, Cell.Empty);
-		}
-		snake1 = new Snake(new Coordinate(0, 0));
-		snake2 = new Snake(new Coordinate(x - 1, y - 1));
-		board[0][0] = Cell.Snake1;
-		board[x - 1][y - 1] = Cell.Snake2;
-		for (Coordinate item : obstacles) {
-			board[item.x][item.y] = Cell.Obstacle;
-		}
+	public Board(int height, int width, int numObstacles) {
+		this.height = height;
+		this.width = width;
+		this.numObstacles = numObstacles;
+		board = new CellType[height][width];		
+		initCellSnakes();
+		initGUI();
 	}
 	
 	public Board(Board bd){
@@ -39,6 +53,144 @@ public class Board {
 		snake1 = new Snake(bd.snake1);
 		snake2 = new Snake(bd.snake2);
 	}
+	
+	private void initCellSnakes() {
+		for(CellType[] item : board){
+			Arrays.fill(item, CellType.Empty);
+		}
+		snake1 = new Snake(new Coordinate(0, 0));
+		snake2 = new Snake(new Coordinate(height - 1, width - 1));
+		board[0][0] = CellType.Snake1;
+		board[height - 1][width - 1] = CellType.Snake2;
+		generateObstacles(numObstacles);
+	}
+	
+	public void generateObstacles(int numObstacles) {
+		int count = 0, totalCoord = height * width;
+		HashSet<Integer> occupied = new HashSet<>();
+		occupied.add(0);
+		occupied.add(totalCoord - 1);
+		Random random = new Random();
+		
+		while (count < numObstacles) {
+			int coordinate = random.nextInt(totalCoord);
+			if (!occupied.contains(coordinate)) {
+				occupied.add(coordinate);
+				board[coordinate / width][coordinate % width] = CellType.Obstacle;
+				count++;
+			}
+		}
+	}
+	
+	private void initGUI() {
+		frame = new JFrame("Snake Battle");
+		frame.setLayout(new BorderLayout());
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(1200, 800);
+		
+		initGame();
+		initButtons();
+		
+		frame.pack();
+		frame.setVisible(true);
+	}
+	
+	private void initGame() {
+		grids = new JPanel(new GridLayout(height, width));
+		grids.setSize(1200, 800);
+		labels = new JLabel[height][width];
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				labels[i][j] = new JLabel();
+				labels[i][j].setOpaque(true);
+				labels[i][j].setVisible(true);
+				grids.add(labels[i][j]);
+			}
+		}
+		initGrids();
+		frame.add(grids, BorderLayout.CENTER);
+	}
+	
+	private void initGrids() {
+		setRunning(false);
+		
+		initCellSnakes();
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				switch (board[i][j]) {
+					case Snake1:
+						paintSnake1(i, j);
+						break;
+					case Snake2:
+						paintSnake2(i, j);
+						break;
+					case Obstacle:
+						paintObstacle(i, j);
+						break;
+					default:
+						paintDefault(i, j);
+						break;
+					}
+				labels[i][j].setVisible(true);
+			}
+		}	
+	}
+	
+	private void paintSnake1(int x, int y) {
+		labels[x][y].setBackground(new Color(255,99,71)); // tomato red
+	}
+	
+	private void paintSnake2(int x, int y) {
+		labels[x][y].setBackground(new Color(65,105,225)); // royal blue
+	}
+	
+	private void paintObstacle(int x, int y) {
+		labels[x][y].setBackground(new Color(0, 0, 0)); // black
+	}
+	
+	private void paintDefault(int x, int y) {
+		labels[x][y].setBackground(new Color(220, 220, 220)); // grey
+	}
+	
+	private void initButtons() {
+		buttons = new JPanel();
+		
+		JButton start = new JButton("Start");
+		start.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (!isRunning()) {
+					setRunning(true);
+					System.out.println("Start is pressed. Is game running? " + isRunning());
+				}
+			}
+		});
+		
+		JButton pause = new JButton("Pause");
+		pause.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (isRunning()) {
+					setRunning(false);
+					System.out.println("Pause is pressed. Is game running? " + isRunning());
+				}
+			}
+		});
+		
+		JButton reset = new JButton("Reset");
+		reset.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				System.out.println("Reset is pressed");
+				initGrids();
+			}
+		});
+		
+		buttons.add(start);
+		buttons.add(pause);
+		buttons.add(reset);
+		frame.add(buttons, BorderLayout.SOUTH);
+	}
 
 	/**
 	 * 1. Move snakes according to designated direction 2. Update the
@@ -46,77 +198,81 @@ public class Board {
 	 * 
 	 * @param one
 	 *            The first snake?
-	 * @param d
+	 * @param direction
 	 *            Move to that direction
 	 */
-	public boolean increaseSnake(boolean one, Direction d, boolean test) {
-		int x = board.length, y = board[0].length, hx = 0, hy = 0;
-		Cell which = Cell.Empty;
+	public boolean increaseSnake(boolean one, Direction direction, boolean test) {
+		int x = board.length, y = board[0].length, headX = 0, headY = 0;
+		CellType headCellType = CellType.Empty;
 		if (one) {
-			hx = snake1.getHead().x;
-			hy = snake1.getHead().y;
-			which = Cell.Snake1;
+			headX = snake1.getHead().x;
+			headY = snake1.getHead().y;
+			headCellType = CellType.Snake1;
 		} else {
-			hx = snake2.getHead().x;
-			hy = snake2.getHead().y;
-			which = Cell.Snake2;
+			headX = snake2.getHead().x;
+			headY = snake2.getHead().y;
+			headCellType = CellType.Snake2;
 		}
-		switch (d) {
-		case Up:
-			if (hy >= y - 1 || board[hx][hy + 1] != Cell.Empty) {
+		switch (direction) {
+			case Up:
+				if (headY >= y - 1 || board[headX][headY + 1] != CellType.Empty) {
+					return false;
+				}
+				if(test) return true;
+				headY++;
+				break;
+			case Down:
+				if (headY <= 0 || board[headX][headY - 1] != CellType.Empty) {
+					return false;
+				}
+				if(test) return true;
+				headY--;
+				break;
+			case Left:
+				if (headX <= 0 || board[headX - 1][headY] != CellType.Empty) {
+					return false;
+				}
+				if(test) return true;
+				headX--;
+				break;
+			case Right:
+				if (headX >= x - 1 || board[headX + 1][headY] != CellType.Empty) {
+					return false;
+				}
+				if(test) return true;
+				headX++;
+				break;
+			default:
 				return false;
-			}
-			if(test) return true;
-			board[hx][hy + 1] = which;
-			break;
-		case Down:
-			if (hy <= 0 || board[hx][hy - 1] != Cell.Empty) {
-				return false;
-			}
-			if(test) return true;
-			board[hx][hy - 1] = which;
-			break;
-		case Left:
-			if (hx <= 0 || board[hx - 1][hy] != Cell.Empty) {
-				return false;
-			}
-			if(test) return true;
-			board[hx - 1][hy] = which;
-			break;
-		case Right:
-			if (hx >= x - 1 || board[hx + 1][hy] != Cell.Empty) {
-				return false;
-			}
-			if(test) return true;
-			board[hx + 1][hy] = which;
-			break;
-		default:
-			return false;
 		}
+		board[headX][headY] = headCellType;
 		if (one) {
-			snake1.increment(d);
+			snake1.increment(direction);
+			paintSnake1(headX, headY);
 		} else {
-			snake2.increment(d);
+			snake2.increment(direction);
+			paintSnake2(headX, headY);
 		}
 		return true;
 	}
 
-	public boolean moveSnake(boolean one, Direction d, boolean test) {
-		if (!increaseSnake(one, d, test)) {
+	public boolean moveSnake(boolean one, Direction direction, boolean test) {
+		if (!increaseSnake(one, direction, test)) {
 			return false;
 		}
 		if(test) return true;
-		int tx = 0, ty = 0;
+		int tailX = 0, tailY = 0;
 		if (one) {
-			tx = snake1.getTail().x;
-			ty = snake1.getTail().y;
+			tailX = snake1.getTail().x;
+			tailY = snake1.getTail().y;
 			snake1.removeTail();
 		} else {
-			tx = snake2.getTail().x;
-			ty = snake2.getTail().y;
+			tailX = snake2.getTail().x;
+			tailY = snake2.getTail().y;
 			snake2.removeTail();
 		}
-		board[tx][ty] = Cell.Empty;
+		board[tailX][tailY] = CellType.Empty;
+		paintDefault(tailX, tailY);
 		return true;
 	}
 
@@ -130,23 +286,17 @@ public class Board {
 		System.out.println();
 	}
 
+	public boolean isRunning() {
+		return running;
+	}
+	
+	public void setRunning(boolean toRun) {
+		running = toRun;
+	}
+	
 	public static void main(String[] args) {
-		Coordinate[] obs = new Coordinate[5];
-		int x = 5, y = 6, nextx = 0, nexty = 0;
-		Random r = new Random();
-		boolean[][] b = new boolean[x][y];
-		b[0][0] = true;
-		b[x - 1][y - 1] = true;
-		for (int i = 0; i < obs.length;) {
-			nextx = r.nextInt(x);
-			nexty = r.nextInt(y);
-			if (b[nextx][nexty])
-				continue;
-			b[nextx][nexty] = true;
-			obs[i] = new Coordinate(nextx, nexty);
-			i++;
-		}
-		Board bd = new Board(x, y, obs);
+		int x = 5, y = 6, numObstacles = 5;
+		Board bd = new Board(x, y, numObstacles);
 		bd.print();
 		bd.increaseSnake(false, Direction.Right, false);
 		bd.increaseSnake(false, Direction.Right, false);
@@ -176,22 +326,22 @@ class Snake {
 		return body.peekLast();
 	}
 
-	public void increment(Direction d) {
-		Coordinate h = getHead();
-		int headx = h.x, heady = h.y;
-		switch (d) {
-		case Up:
-			heady++;
-			break;
-		case Down:
-			heady--;
-			break;
-		case Left:
-			headx--;
-			break;
-		case Right:
-			headx++;
-			break;
+	public void increment(Direction direction) {
+		Coordinate head = getHead();
+		int headx = head.x, heady = head.y;
+		switch (direction) {
+			case Up:
+				heady++;
+				break;
+			case Down:
+				heady--;
+				break;
+			case Left:
+				headx--;
+				break;
+			case Right:
+				headx++;
+				break;
 		}
 		body.addFirst(new Coordinate(headx, heady));
 	}
@@ -210,7 +360,7 @@ class Coordinate {
 	}
 }
 
-enum Cell {
+enum CellType {
 	Empty, Snake1, Snake2, Obstacle;
 }
 

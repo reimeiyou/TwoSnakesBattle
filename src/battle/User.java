@@ -1,3 +1,4 @@
+package battle;
 
 public class User extends AI {
 
