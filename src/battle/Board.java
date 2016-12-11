@@ -67,7 +67,7 @@ public class Board {
 	
 	public void generateObstacles(int numObstacles) {
 		int count = 0, totalCoord = height * width;
-		HashSet<Integer> occupied = new HashSet<>();
+		HashSet<Integer> occupied = new HashSet<Integer>();
 		occupied.add(0);
 		occupied.add(totalCoord - 1);
 		Random random = new Random();
@@ -215,32 +215,32 @@ public class Board {
 		}
 		switch (direction) {
 			case Up:
-				if (headY >= y - 1 || board[headX][headY + 1] != CellType.Empty) {
-					return false;
-				}
-				if(test) return true;
-				headY++;
-				break;
-			case Down:
-				if (headY <= 0 || board[headX][headY - 1] != CellType.Empty) {
-					return false;
-				}
-				if(test) return true;
-				headY--;
-				break;
-			case Left:
 				if (headX <= 0 || board[headX - 1][headY] != CellType.Empty) {
 					return false;
 				}
 				if(test) return true;
 				headX--;
 				break;
-			case Right:
+			case Down:
 				if (headX >= x - 1 || board[headX + 1][headY] != CellType.Empty) {
 					return false;
 				}
 				if(test) return true;
 				headX++;
+				break;
+			case Left:
+				if (headY <= 0 || board[headX][headY - 1] != CellType.Empty) {
+					return false;
+				}
+				if(test) return true;
+				headY--;
+				break;
+			case Right:
+				if (headY >= y - 1 || board[headX][headY + 1] != CellType.Empty) {
+					return false;
+				}
+				if(test) return true;
+				headY++;
 				break;
 			default:
 				return false;
@@ -276,6 +276,8 @@ public class Board {
 		return true;
 	}
 
+	// TODO : game over 
+	
 	public void print() {
 		for (int j = board[0].length - 1; j >= 0; j--) {
 			for (int i = 0; i < board.length; i++) {
@@ -331,16 +333,16 @@ class Snake {
 		int headx = head.x, heady = head.y;
 		switch (direction) {
 			case Up:
-				heady++;
-				break;
-			case Down:
-				heady--;
-				break;
-			case Left:
 				headx--;
 				break;
-			case Right:
+			case Down:
 				headx++;
+				break;
+			case Left:
+				heady--;
+				break;
+			case Right:
+				heady++;
 				break;
 		}
 		body.addFirst(new Coordinate(headx, heady));

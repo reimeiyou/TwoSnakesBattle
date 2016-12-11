@@ -21,7 +21,7 @@ public class Game {
 		}
 		gameBoard = new Board(x, y, numObstacles);
 		myAI = new AI(gameBoard, true);
-		otherAI = new User(gameBoard, false);
+		otherAI = new AI(gameBoard, false);
 		while(true){
 			while (gameBoard.isRunning()) {
 				// AI compute next direction for snake 1
