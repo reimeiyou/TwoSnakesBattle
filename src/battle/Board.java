@@ -2,6 +2,7 @@ package battle;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -13,7 +14,10 @@ import java.util.Random;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+
+import util.Constants;
 
 public class Board {
 	Snake snake1, snake2;
@@ -25,6 +29,7 @@ public class Board {
 	private boolean running;
 	int height, width;
 	private int numObstacles;
+	protected AI snake1AI, snake2AI;
 
 	/**
 	 * @param height
@@ -86,7 +91,7 @@ public class Board {
 		frame = new JFrame("Snake Battle");
 		frame.setLayout(new BorderLayout());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(1200, 800);
+		frame.setBounds(300, 200, 1200, 800);
 		
 		initGame();
 		initButtons();
@@ -97,7 +102,7 @@ public class Board {
 	
 	private void initGame() {
 		grids = new JPanel(new GridLayout(height, width));
-		grids.setSize(1200, 800);
+		grids.setPreferredSize(new Dimension(600, 400));
 		labels = new JLabel[height][width];
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
@@ -111,9 +116,40 @@ public class Board {
 		frame.add(grids, BorderLayout.CENTER);
 	}
 	
+	public void initAI() {
+		String[] AITypes = {Constants.ALPHA_BETA_AI, Constants.RANDOM_AI, Constants.THIRD_AI};
+		String[] AILevels = {Constants.LEVEL_1, Constants.LEVEL_2, Constants.LEVEL_3};
+		
+		String snake1AIType = (String) JOptionPane.showInputDialog(null, "Choose an AI that controls Snake 1", 
+				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
+		String snake1AILevel = (String) JOptionPane.showInputDialog(null, "Choose the smartness of the AI that controls Snake 1", 
+				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+		String snake2AIType = (String) JOptionPane.showInputDialog(null, "Choose an AI that controls Snake 2", 
+				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
+		String snake2AILevel = (String) JOptionPane.showInputDialog(null, "Choose the smartness of the AI that controls Snake 2", 
+				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+		snake1AI = createAI(snake1AIType, snake1AILevel, this, true);
+		snake2AI = createAI(snake2AIType, snake2AILevel, this, false);
+	}
+	
+	public static AI createAI(String AITYpe, String AILeve, Board board, boolean isFirst) {
+		switch (AITYpe) {
+		// TODO add AI level
+			case Constants.ALPHA_BETA_AI:
+				return new AlphaBetaAI(board, isFirst);
+			case Constants.RANDOM_AI:
+				return new RandomAI(board, isFirst);
+			case Constants.THIRD_AI:
+				return new AlphaBetaAI(board, isFirst); // TODO: change this when the third AI is ready
+			default:
+				return new AlphaBetaAI(board, isFirst);
+		}
+	}
+	
 	private void initGrids() {
 		setRunning(false);
 		
+		initAI();
 		initCellSnakes();
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {

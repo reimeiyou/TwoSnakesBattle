@@ -1,12 +1,13 @@
 package battle;
 
+
 import util.Constants;
 
 
 public class Game {
 	public static Board gameBoard;
 	public static int round = 0;
-	public static AI myAI, otherAI;
+	public static AI snake1AI, snake2AI;
 
 	/**
 	 * @param args
@@ -19,9 +20,12 @@ public class Game {
 			y = Integer.parseInt(args[2]);
 			numObstacles = Integer.parseInt(args[3]);
 		}
+		
 		gameBoard = new Board(x, y, numObstacles);
-		myAI = new AI(gameBoard, true);
-		otherAI = new AI(gameBoard, false);
+
+//		snake1AI = createAI(snake1AIName, gameBoard, true);
+//		snake2AI = createAI(snake2AIName, gameBoard, false);
+
 		while(true){
 			while (gameBoard.isRunning()) {
 				// AI compute next direction for snake 1
@@ -37,5 +41,4 @@ public class Game {
 			}
 		}
 	}
-
 }
