@@ -5,12 +5,13 @@ import java.util.ArrayList;
 
 public class AlphaBetaAI extends AI {
 
-	public AlphaBetaAI(Board board, boolean self) {
-		super(board, self);
+	public AlphaBetaAI(Board board, boolean self, int depth) {
+		super(board, self, depth);
 	}
 
-	public Direction nextStep(Direction d, boolean increase, int depth) {
-		updateBoard(!first, increase, d);
+	public Direction nextStep(Direction d, boolean increase) {
+		if(d != null)
+			updateBoard(!first, increase, d);
 		SearchResult res = search(board, depth, true, Integer.MIN_VALUE, Integer.MAX_VALUE);
 		updateBoard(first, increase, res.dir);
 		return res.dir;

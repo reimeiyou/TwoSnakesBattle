@@ -21,8 +21,13 @@ public class Game {
 	
 	public Game(int x, int y, int numObstacles) {
 		board = new Board(x, y, numObstacles);
+		round = 1;
 		initGUI();
 		initAI();
+	}
+	
+	public boolean shouldIncrease() {
+		return (round <= 10 || round % 3 == 0) ? true : false;
 	}
 	
 	public static void main(String[] args) {
@@ -33,22 +38,34 @@ public class Game {
 			numObstacles = Integer.parseInt(args[3]);
 		}
 		Game game = new Game(x, y, numObstacles);
+		Direction snake1Direction = null, snake2Direction = null;
+		boolean snake1 = false, snake2 = false;
 		
 		while(true){
-			while (game.isRunning()) {
-				// AI compute next direction for snake 1
-				// AI compute next direction for snake 2
-				// snake 1 move
-				// snake 2 move
-				
-				// TODO check game over
-				game.board.moveSnake(true, Direction.Right, false);
-				game.board.moveSnake(false, Direction.Up, false);
+			while (game.isRunning()) {	
+				snake1Direction = game.snake1AI.nextStep(snake1Direction, game.shouldIncrease());
+				snake2Direction = game.snake2AI.nextStep(snake2Direction, game.shouldIncrease());
+
+				if (game.isRunning()) {
+					snake1 = game.board.moveSnake(true, snake1Direction, false);
+					game.checkGame(snake1, true);
+				}
+				if (game.isRunning()) {
+					snake2 = game.board.moveSnake(false, snake2Direction, false);
+					game.checkGame(snake2, false);
+				}
 				try {
 					Thread.sleep(Constants.WAIT_TIME);
 				} catch (InterruptedException e) {
 				}
 			}
+		}
+	}
+	
+	public void checkGame(boolean moveResult, boolean isFirst) {
+		if (!moveResult) {
+			setRunning(false);
+			JOptionPane.showMessageDialog(frame, String.format("Game ends. Snake %s loses!", isFirst ? "1" : "2"));
 		}
 	}
 	
@@ -67,30 +84,35 @@ public class Game {
 	public void initAI() {
 		String[] AITypes = {Constants.ALPHA_BETA_AI, Constants.RANDOM_AI, Constants.THIRD_AI};
 		String[] AILevels = {Constants.LEVEL_1, Constants.LEVEL_2, Constants.LEVEL_3};
+		String snake1AIType = null, snake1AILevel = null, snake2AIType = null, snake2AILevel = null;
 		
-		String snake1AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 1", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
-		String snake1AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 1", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
-		String snake2AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 2", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
-		String snake2AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 2", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+		while (snake1AIType == null || snake1AILevel == null || snake2AIType == null || snake2AILevel == null) {
+			JOptionPane.showMessageDialog(frame, "Please choose an AI and its smartness for each snake. All of them should be specified.");
+			snake1AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 1", 
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
+			snake1AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 1", 
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+			snake2AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 2", 
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
+			snake2AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 2", 
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+			System.out.println("1 AI Type " + snake1AIType + " 1 AI Level " + snake1AILevel + " 2 AI Type " + snake2AIType + " 2 AI Level " + snake2AILevel);
+		}
 		snake1AI = createAI(snake1AIType, snake1AILevel, board, true);
 		snake2AI = createAI(snake2AIType, snake2AILevel, board, false);
 	}
 	
-	public AI createAI(String AITYpe, String AILeve, Board board, boolean isFirst) {
+	public AI createAI(String AITYpe, String AILevel, Board board, boolean isFirst) {
+		int depth = Integer.parseInt(AILevel);
 		switch (AITYpe) {
-		// TODO add AI level
 			case Constants.ALPHA_BETA_AI:
-				return new AlphaBetaAI(board, isFirst);
+				return new AlphaBetaAI(board, isFirst, depth);
 			case Constants.RANDOM_AI:
-				return new RandomAI(board, isFirst);
+				return new RandomAI(board, isFirst, depth);
 			case Constants.THIRD_AI:
-				return new AlphaBetaAI(board, isFirst); // TODO: change this when the third AI is ready
+				return new AlphaBetaAI(board, isFirst, depth); // TODO: change this when the third AI is ready
 			default:
-				return new AlphaBetaAI(board, isFirst);
+				return new AlphaBetaAI(board, isFirst, depth);
 		}
 	}
 	
@@ -141,7 +163,7 @@ public class Game {
 		return running;
 	}
 	
-	public void setRunning(boolean toRun) {
+	private void setRunning(boolean toRun) {
 		running = toRun;
 	}
 

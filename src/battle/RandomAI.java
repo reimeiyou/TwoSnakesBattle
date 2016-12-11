@@ -5,12 +5,13 @@ import java.util.Random;
 
 public class RandomAI extends AI {
 
-	public RandomAI(Board board, boolean self) {
-		super(board, self);
+	public RandomAI(Board board, boolean self, int depth) {
+		super(board, self, depth);
 	}
 	
 	public Direction nextStep(Direction d, boolean increase) {
-		this.updateBoard(!first, increase, d);
+		if (d != null)
+			this.updateBoard(!first, increase, d);
 		ArrayList<Direction> dirs = this.possibleSteps(first, board);
 		if(dirs.isEmpty()){
 			return Direction.Down;

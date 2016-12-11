@@ -2,13 +2,16 @@ package battle;
 
 import java.util.ArrayList;
 
-public class AI {
+public abstract class AI {
 	protected Board board;
 	protected boolean first;
+	int depth;
 
-	public AI(Board board, boolean self) {
+	public AI(Board board, boolean self, int depth) {
 		this.board = board;
 		this.first = self;
+		this.depth = depth;
+		
 	}
 
 	public void updateBoard(boolean one, boolean increase, Direction d) {
@@ -18,6 +21,8 @@ public class AI {
 			board.moveSnake(one, d, false);
 		}
 	}
+	
+	public abstract Direction nextStep(Direction d, boolean increase);
 	
 	protected ArrayList<Direction> possibleSteps(boolean one, Board board) {
 		ArrayList<Direction> dirs = new ArrayList<Direction>();
