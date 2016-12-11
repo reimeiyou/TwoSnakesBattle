@@ -1,35 +1,23 @@
 package battle;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import util.Constants;
-
-public class Board {
+public class Board extends JPanel{
+	private static final long serialVersionUID = 1L;
 	Snake snake1, snake2;
-	private JFrame frame;
 	CellType[][] board;
 	private JLabel[][] labels;
-	private JPanel grids;
-	public JPanel buttons;
-	private boolean running;
 	int height, width;
 	private int numObstacles;
-	protected AI snake1AI, snake2AI;
 
 	/**
 	 * @param height
@@ -40,12 +28,14 @@ public class Board {
 	 *            the forbidden position
 	 */
 	public Board(int height, int width, int numObstacles) {
+		super(new GridLayout(height, width));
+		setPreferredSize(new Dimension(600, 400));		
 		this.height = height;
 		this.width = width;
 		this.numObstacles = numObstacles;
-		board = new CellType[height][width];		
-		initCellSnakes();
-		initGUI();
+		initCellSnakesObstacles();
+		initLabels();
+		colorCellSnakesObstacles();
 	}
 	
 	public Board(Board bd){
@@ -59,18 +49,27 @@ public class Board {
 		snake2 = new Snake(bd.snake2);
 	}
 	
-	private void initCellSnakes() {
+	void initCellSnakesObstacles() {
+		initCell();
+		initSnakes();
+		initObstacles();
+	}
+	
+	private void initCell() {
+		board = new CellType[height][width];		
 		for(CellType[] item : board){
 			Arrays.fill(item, CellType.Empty);
 		}
+	}
+	
+	private void initSnakes() {
 		snake1 = new Snake(new Coordinate(0, 0));
 		snake2 = new Snake(new Coordinate(height - 1, width - 1));
 		board[0][0] = CellType.Snake1;
 		board[height - 1][width - 1] = CellType.Snake2;
-		generateObstacles(numObstacles);
 	}
 	
-	public void generateObstacles(int numObstacles) {
+	private void initObstacles() {
 		int count = 0, totalCoord = height * width;
 		HashSet<Integer> occupied = new HashSet<Integer>();
 		occupied.add(0);
@@ -86,71 +85,20 @@ public class Board {
 			}
 		}
 	}
-	
-	private void initGUI() {
-		frame = new JFrame("Snake Battle");
-		frame.setLayout(new BorderLayout());
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBounds(300, 200, 1200, 800);
-		
-		initGame();
-		initButtons();
-		
-		frame.pack();
-		frame.setVisible(true);
-	}
-	
-	private void initGame() {
-		grids = new JPanel(new GridLayout(height, width));
-		grids.setPreferredSize(new Dimension(600, 400));
+
+	private void initLabels() {
 		labels = new JLabel[height][width];
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				labels[i][j] = new JLabel();
 				labels[i][j].setOpaque(true);
 				labels[i][j].setVisible(true);
-				grids.add(labels[i][j]);
+				this.add(labels[i][j]);
 			}
 		}
-		initGrids();
-		frame.add(grids, BorderLayout.CENTER);
 	}
 	
-	public void initAI() {
-		String[] AITypes = {Constants.ALPHA_BETA_AI, Constants.RANDOM_AI, Constants.THIRD_AI};
-		String[] AILevels = {Constants.LEVEL_1, Constants.LEVEL_2, Constants.LEVEL_3};
-		
-		String snake1AIType = (String) JOptionPane.showInputDialog(null, "Choose an AI that controls Snake 1", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
-		String snake1AILevel = (String) JOptionPane.showInputDialog(null, "Choose the smartness of the AI that controls Snake 1", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
-		String snake2AIType = (String) JOptionPane.showInputDialog(null, "Choose an AI that controls Snake 2", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
-		String snake2AILevel = (String) JOptionPane.showInputDialog(null, "Choose the smartness of the AI that controls Snake 2", 
-				"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
-		snake1AI = createAI(snake1AIType, snake1AILevel, this, true);
-		snake2AI = createAI(snake2AIType, snake2AILevel, this, false);
-	}
-	
-	public static AI createAI(String AITYpe, String AILeve, Board board, boolean isFirst) {
-		switch (AITYpe) {
-		// TODO add AI level
-			case Constants.ALPHA_BETA_AI:
-				return new AlphaBetaAI(board, isFirst);
-			case Constants.RANDOM_AI:
-				return new RandomAI(board, isFirst);
-			case Constants.THIRD_AI:
-				return new AlphaBetaAI(board, isFirst); // TODO: change this when the third AI is ready
-			default:
-				return new AlphaBetaAI(board, isFirst);
-		}
-	}
-	
-	private void initGrids() {
-		setRunning(false);
-		
-		initAI();
-		initCellSnakes();
+	void colorCellSnakesObstacles() {		
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				switch (board[i][j]) {
@@ -186,46 +134,6 @@ public class Board {
 	
 	private void paintDefault(int x, int y) {
 		labels[x][y].setBackground(new Color(220, 220, 220)); // grey
-	}
-	
-	private void initButtons() {
-		buttons = new JPanel();
-		
-		JButton start = new JButton("Start");
-		start.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (!isRunning()) {
-					setRunning(true);
-					System.out.println("Start is pressed. Is game running? " + isRunning());
-				}
-			}
-		});
-		
-		JButton pause = new JButton("Pause");
-		pause.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (isRunning()) {
-					setRunning(false);
-					System.out.println("Pause is pressed. Is game running? " + isRunning());
-				}
-			}
-		});
-		
-		JButton reset = new JButton("Reset");
-		reset.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				System.out.println("Reset is pressed");
-				initGrids();
-			}
-		});
-		
-		buttons.add(start);
-		buttons.add(pause);
-		buttons.add(reset);
-		frame.add(buttons, BorderLayout.SOUTH);
 	}
 
 	/**
@@ -311,8 +219,6 @@ public class Board {
 		paintDefault(tailX, tailY);
 		return true;
 	}
-
-	// TODO : game over 
 	
 	public void print() {
 		for (int j = board[0].length - 1; j >= 0; j--) {
@@ -322,14 +228,6 @@ public class Board {
 			System.out.println();
 		}
 		System.out.println();
-	}
-
-	public boolean isRunning() {
-		return running;
-	}
-	
-	public void setRunning(boolean toRun) {
-		running = toRun;
 	}
 	
 	public static void main(String[] args) {
