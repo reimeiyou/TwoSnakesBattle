@@ -30,8 +30,15 @@ public class Game {
 		return (round <= 10 || round % 3 == 0) ? true : false;
 	}
 	
+	/**
+	 * rount += 1
+	 */
 	public void incrementRound() {
 		round++;
+	}
+	
+	public int getRound() {
+		return round;
 	}
 	
 	public static void main(String[] args) {
@@ -42,26 +49,39 @@ public class Game {
 			numObstacles = Integer.parseInt(args[3]);
 		}
 		Game game = new Game(x, y, numObstacles);
-		Direction snake1Direction = null, snake2Direction = null;
-		boolean snake1 = false, snake2 = false;
+		Direction snake1PrevDirection = null, snake2PrevDirection = null;
+		Direction snake1NextDirection, snake2NextDirection;
+		boolean snake1Moved = false, snake2Moved = false;
 		
 		while(true){
 			while (game.isRunning()) {	
-				snake1Direction = game.snake1AI.nextStep(snake2Direction, game.shouldIncrease());
-				snake2Direction = game.snake2AI.nextStep(snake1Direction, game.shouldIncrease());
-
-				if (game.isRunning()) {
-					snake1 = game.board.moveSnake(true, snake1Direction, false);
-					if (game.checkGame(snake1, true)) {
-						snake1Direction = null;
-						snake2Direction = null;
-					}
+				boolean increase = game.shouldIncrease();
+				System.out.println(String.format(
+						"In round %s, snake 1's length is %s, snake 2's length is %s. Increase? %s", 
+						game.getRound(), game.board.snake1.getLength(),
+						game.board.snake2.getLength(), increase ? "true" : "false"));
+				
+				snake1NextDirection = game.snake1AI.nextStep(snake2PrevDirection, increase);
+				snake2NextDirection = game.snake2AI.nextStep(snake1PrevDirection, increase);
+				System.out.println("Snake 1's next step " + snake1NextDirection.toString() + " Snake 2's next step " + snake2NextDirection.toString());
+				
+				snake1Moved = increase ? 
+						game.board.increaseSnake(true, snake1NextDirection, false) : 
+						game.board.moveSnake(true, snake1NextDirection, false);
+				if (game.checkGame(snake1Moved, true)) {
+					snake1PrevDirection = null;
+					snake2PrevDirection = null;					
 				}
-				if (game.isRunning()) {
-					snake2 = game.board.moveSnake(false, snake2Direction, false);
-					if (game.checkGame(snake2, false)) {
-						snake1Direction = null;
-						snake2Direction = null;
+				if (snake1Moved) {
+					snake2Moved = increase ? 
+							game.board.increaseSnake(false, snake2NextDirection, false) : 
+							game.board.moveSnake(false, snake2NextDirection, false);
+					if (game.checkGame(snake2Moved, false)) {
+						snake1PrevDirection = null;
+						snake2PrevDirection = null;
+					} else {
+						snake1PrevDirection = snake1NextDirection;
+						snake2PrevDirection = snake2NextDirection;
 					}
 				}
 				game.incrementRound();
@@ -102,11 +122,11 @@ public class Game {
 		while (snake1AIType == null || snake1AILevel == null || snake2AIType == null || snake2AILevel == null) {
 			JOptionPane.showMessageDialog(frame, "Please choose an AI and its smartness for each snake. All of them should be specified.");
 			snake1AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 1", 
-					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[1]);
 			snake1AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 1", 
 					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
 			snake2AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 2", 
-					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[1]);
 			snake2AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 2", 
 					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
 			System.out.println("1 AI Type " + snake1AIType + " 1 AI Level " + snake1AILevel + " 2 AI Type " + snake2AIType + " 2 AI Level " + snake2AILevel);

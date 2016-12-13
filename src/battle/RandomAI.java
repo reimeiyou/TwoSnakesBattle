@@ -17,7 +17,7 @@ public class RandomAI extends AI {
 			return Direction.Down;
 		}
 		Random rand = new Random();
-		int ii = rand.nextInt() % dirs.size();
+		int ii = (rand.nextInt() % dirs.size() + dirs.size()) % dirs.size();
 		return dirs.get(ii);
 	}
 }

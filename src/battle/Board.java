@@ -8,8 +8,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.Border;
 
 public class Board extends JPanel{
 	private static final long serialVersionUID = 1L;
@@ -88,9 +90,11 @@ public class Board extends JPanel{
 
 	private void initLabels() {
 		labels = new JLabel[height][width];
+		Border border = BorderFactory.createLineBorder(new Color(255,255,255), 1);
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
 				labels[i][j] = new JLabel();
+				labels[i][j].setBorder(border);
 				labels[i][j].setOpaque(true);
 				labels[i][j].setVisible(true);
 				this.add(labels[i][j]);
@@ -262,6 +266,9 @@ class Snake {
 		return body.peekLast();
 	}
 
+	public int getLength() {
+		return body.size();
+	}
 	public void increment(Direction direction) {
 		Coordinate head = getHead();
 		int headx = head.x, heady = head.y;
