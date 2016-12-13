@@ -41,6 +41,10 @@ public class Game {
 		return round;
 	}
 	
+	public void resetRound() {
+		round = 0;
+	}
+	
 	public static void main(String[] args) {
 		int x = Constants.HEIGHT, y = Constants.WIDTH, numObstacles = Constants.NUM_OF_OBSTACLES;
 		if (args.length == 4) {
@@ -68,23 +72,30 @@ public class Game {
 				snake1Moved = increase ? 
 						game.board.increaseSnake(true, snake1NextDirection, false) : 
 						game.board.moveSnake(true, snake1NextDirection, false);
-				if (game.checkGame(snake1Moved, true)) {
+				snake2Moved = increase ? 
+						game.board.increaseSnake(false, snake2NextDirection, false) : 
+						game.board.moveSnake(false, snake2NextDirection, false);	
+				
+				if (snake1Moved && snake2Moved) {
+					snake1PrevDirection = snake1NextDirection;
+					snake2PrevDirection = snake2NextDirection;
+					game.incrementRound();
+				} else {
 					snake1PrevDirection = null;
-					snake2PrevDirection = null;					
-				}
-				if (snake1Moved) {
-					snake2Moved = increase ? 
-							game.board.increaseSnake(false, snake2NextDirection, false) : 
-							game.board.moveSnake(false, snake2NextDirection, false);
-					if (game.checkGame(snake2Moved, false)) {
-						snake1PrevDirection = null;
-						snake2PrevDirection = null;
+					snake2PrevDirection = null;
+					game.setRunning(false);
+					game.resetRound();
+					if (!snake1Moved && !snake2Moved) {
+						game.showTieDialog();
 					} else {
-						snake1PrevDirection = snake1NextDirection;
-						snake2PrevDirection = snake2NextDirection;
+						if (!snake1Moved) {
+							game.showLoseDialog(true);
+						} else {
+							game.showLoseDialog(false);
+						}
 					}
 				}
-				game.incrementRound();
+				
 				try {
 					Thread.sleep(Constants.WAIT_TIME);
 				} catch (InterruptedException e) {
@@ -93,13 +104,12 @@ public class Game {
 		}
 	}
 	
-	public boolean checkGame(boolean moveResult, boolean isFirst) {
-		if (!moveResult) {
-			setRunning(false);
-			JOptionPane.showMessageDialog(frame, String.format("Game ends. Snake %s loses!", isFirst ? "1" : "2"));
-			return true;
-		}
-		return false;
+	public void showTieDialog() {
+		JOptionPane.showMessageDialog(frame, "Game ends and it was a tie.");
+	}
+	
+	public void showLoseDialog(boolean isFirst) {
+		JOptionPane.showMessageDialog(frame, String.format("Game ends. Snake %s loses!", isFirst ? "1" : "2"));
 	}
 	
 	private void initGUI() {

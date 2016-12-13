@@ -10,10 +10,10 @@ public class AlphaBetaAI extends AI {
 	}
 
 	public Direction nextStep(Direction d, boolean increase) {
-		if(d != null)
-			updateBoard(!first, increase, d);
+//		if(d != null)
+//			updateBoard(!first, increase, d);
 		SearchResult res = search(board, depth, true, Integer.MIN_VALUE, Integer.MAX_VALUE);
-		updateBoard(first, increase, res.dir);
+//		updateBoard(first, increase, res.dir);
 		return res.dir;
 	}
 
