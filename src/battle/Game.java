@@ -43,16 +43,22 @@ public class Game {
 		
 		while(true){
 			while (game.isRunning()) {	
-				snake1Direction = game.snake1AI.nextStep(snake1Direction, game.shouldIncrease());
-				snake2Direction = game.snake2AI.nextStep(snake2Direction, game.shouldIncrease());
+				snake1Direction = game.snake1AI.nextStep(snake2Direction, game.shouldIncrease());
+				snake2Direction = game.snake2AI.nextStep(snake1Direction, game.shouldIncrease());
 
 				if (game.isRunning()) {
 					snake1 = game.board.moveSnake(true, snake1Direction, false);
-					game.checkGame(snake1, true);
+					if (game.checkGame(snake1, true)) {
+						snake1Direction = null;
+						snake2Direction = null;
+					}
 				}
 				if (game.isRunning()) {
 					snake2 = game.board.moveSnake(false, snake2Direction, false);
-					game.checkGame(snake2, false);
+					if (game.checkGame(snake2, false)) {
+						snake1Direction = null;
+						snake2Direction = null;
+					}
 				}
 				try {
 					Thread.sleep(Constants.WAIT_TIME);
@@ -62,11 +68,13 @@ public class Game {
 		}
 	}
 	
-	public void checkGame(boolean moveResult, boolean isFirst) {
+	public boolean checkGame(boolean moveResult, boolean isFirst) {
 		if (!moveResult) {
 			setRunning(false);
 			JOptionPane.showMessageDialog(frame, String.format("Game ends. Snake %s loses!", isFirst ? "1" : "2"));
+			return true;
 		}
+		return false;
 	}
 	
 	private void initGUI() {
