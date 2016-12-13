@@ -30,6 +30,10 @@ public class Game {
 		return (round <= 10 || round % 3 == 0) ? true : false;
 	}
 	
+	public void incrementRound() {
+		round++;
+	}
+	
 	public static void main(String[] args) {
 		int x = Constants.HEIGHT, y = Constants.WIDTH, numObstacles = Constants.NUM_OF_OBSTACLES;
 		if (args.length == 4) {
@@ -60,6 +64,7 @@ public class Game {
 						snake2Direction = null;
 					}
 				}
+				game.incrementRound();
 				try {
 					Thread.sleep(Constants.WAIT_TIME);
 				} catch (InterruptedException e) {
