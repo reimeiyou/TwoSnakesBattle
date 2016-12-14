@@ -18,7 +18,7 @@ public class Game {
 	JPanel buttons;
 	AI snake1AI, snake2AI;
 	AIStats AI1Stats, AI2Stats;
-	boolean running;
+	boolean running, paused;
 	int round;
 	int totalEvals;
 	int finishedEval;
@@ -26,7 +26,6 @@ public class Game {
 	public Game(int x, int y, int numObstacles, int totalEvals) {
 		board = new Board(x, y, numObstacles);
 		this.totalEvals = totalEvals;
-//		finishedEval = 0;
 		round = 1;
 		initGUI();
 		initAI();
@@ -73,7 +72,7 @@ public class Game {
 		
 		while(true){
 			while (game.finishedEval < totalEvals) {
-				while (game.isRunning()) {	
+				while (game.isRunning() && !game.isPaused()) {	
 					boolean increase = game.shouldIncrease();
 					System.out.println(String.format(
 							"In round %s, snake 1's length is %s, snake 2's length is %s. Increase? %s", 
@@ -198,7 +197,7 @@ public class Game {
 			case Constants.RANDOM_AI:
 				return new RandomAI(board, isFirst, depth);
 			case Constants.BASIC_AI:
-				return new BasicAI(board, isFirst, depth); // TODO: change this when the third AI is ready
+				return new BasicAI(board, isFirst, depth);
 			default:
 				return new BasicAI(board, isFirst, depth);
 		}
@@ -211,8 +210,9 @@ public class Game {
 		start.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (!isRunning()) {
-					setRunning(true);
+				if (!running && !paused) {
+					running = true;
+					paused = false;
 					finishedEval = 0;
 					System.out.println("Start is pressed. Is game running? " + isRunning());
 				}
@@ -223,10 +223,11 @@ public class Game {
 		pause.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (isRunning()) {
-					setRunning(false);
+//				if (isRunning()) {
+					running = false;
+					paused = true;
 					System.out.println("Pause is pressed. Is game running? " + isRunning());
-				}
+//				}
 			}
 		});
 		
@@ -235,7 +236,8 @@ public class Game {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				System.out.println("Reset is pressed");
-				setRunning(false);
+				running = false;
+				paused = false;
 				initAI();
 				board.initCellSnakesObstacles();
 				board.colorCellSnakesObstacles();
@@ -250,6 +252,10 @@ public class Game {
 	
 	public boolean isRunning() {
 		return running;
+	}
+	
+	public boolean isPaused() {
+		return paused;
 	}
 	
 	private void setRunning(boolean toRun) {
