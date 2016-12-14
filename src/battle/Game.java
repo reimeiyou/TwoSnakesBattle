@@ -168,7 +168,7 @@ public class Game {
 	}
 	
 	public void initAI() {
-		String[] AITypes = {Constants.ALPHA_BETA_AI, Constants.RANDOM_AI, Constants.THIRD_AI};
+		String[] AITypes = {Constants.ALPHA_BETA_AI, Constants.RANDOM_AI, Constants.BASIC_AI};
 		String[] AILevels = {Constants.LEVEL_1, Constants.LEVEL_2, Constants.LEVEL_3};
 		String snake1AIType = null, snake1AILevel = null, snake2AIType = null, snake2AILevel = null;
 		
@@ -197,7 +197,7 @@ public class Game {
 				return new AlphaBetaAI(board, isFirst, depth);
 			case Constants.RANDOM_AI:
 				return new RandomAI(board, isFirst, depth);
-			case Constants.THIRD_AI:
+			case Constants.BASIC_AI:
 				return new AlphaBetaAI(board, isFirst, depth); // TODO: change this when the third AI is ready
 			default:
 				return new AlphaBetaAI(board, isFirst, depth);

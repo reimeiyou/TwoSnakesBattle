@@ -301,6 +301,10 @@ class Coordinate {
 		this.x = x;
 		this.y = y;
 	}
+	
+	public boolean equals(Coordinate other){
+		return other == null ? this == null : (this.x == other.x && this.y == other.y);
+	}
 }
 
 enum CellType {
