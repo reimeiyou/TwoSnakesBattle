@@ -174,11 +174,11 @@ public class Game {
 		while (snake1AIType == null || snake1AILevel == null || snake2AIType == null || snake2AILevel == null) {
 			JOptionPane.showMessageDialog(frame, "Please choose an AI and its smartness for each snake. All of them should be specified.");
 			snake1AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 1", 
-					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[2]);
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
 			snake1AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 1", 
 					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
 			snake2AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 2", 
-					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[2]);
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
 			snake2AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 2", 
 					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
 			System.out.println("1 AI Type " + snake1AIType + " 1 AI Level " + snake1AILevel + " 2 AI Type " + snake2AIType + " 2 AI Level " + snake2AILevel);
@@ -210,7 +210,7 @@ public class Game {
 		start.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (!running && !paused) {
+				if (!running) {
 					running = true;
 					paused = false;
 					finishedEval = 0;

@@ -42,6 +42,7 @@ public class Board extends JPanel{
 	
 	public Board(Board bd){
 		int x = bd.board.length, y = bd.board[0].length;
+		board = new CellType[x][y];
 		for(int i = 0; i < x; i++){
 			for(int j = 0; j < y; j++){
 				board[i][j] = bd.board[i][j];
@@ -49,6 +50,8 @@ public class Board extends JPanel{
 		}
 		snake1 = new Snake(bd.snake1);
 		snake2 = new Snake(bd.snake2);
+		height = bd.height;
+		width = bd.width;
 	}
 	
 	void initCellSnakesObstacles() {
@@ -196,10 +199,12 @@ public class Board extends JPanel{
 		board[headX][headY] = headCellType;
 		if (one) {
 			snake1.increment(direction);
-			paintSnake1(headX, headY);
+			if (labels != null)
+				paintSnake1(headX, headY);
 		} else {
 			snake2.increment(direction);
-			paintSnake2(headX, headY);
+			if (labels != null)
+				paintSnake2(headX, headY);
 		}
 		return true;
 	}
@@ -220,13 +225,14 @@ public class Board extends JPanel{
 			snake2.removeTail();
 		}
 		board[tailX][tailY] = CellType.Empty;
-		paintDefault(tailX, tailY);
+		if (labels != null)
+			paintDefault(tailX, tailY);
 		return true;
 	}
 	
 	public void print() {
-		for (int j = board[0].length - 1; j >= 0; j--) {
-			for (int i = 0; i < board.length; i++) {
+		for (int i = 0; i < board.length; i++) {
+			for (int j = 0; j < board[0].length; j++) {
 				System.out.print(board[i][j].ordinal() + " ");
 			}
 			System.out.println();
@@ -302,8 +308,18 @@ class Coordinate {
 		this.y = y;
 	}
 	
-	public boolean equals(Coordinate other){
-		return other == null ? this == null : (this.x == other.x && this.y == other.y);
+	@Override
+	public int hashCode(){
+		return x * 100 + y;
+	}
+	
+//	@Override
+//	public boolean equals(Object other){
+//		return (x == other.x && y == other.y);
+//	}
+	@Override
+	public String toString(){
+		return x + " " + y;
 	}
 }
 

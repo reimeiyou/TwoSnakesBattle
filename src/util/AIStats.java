@@ -49,9 +49,9 @@ public class AIStats {
 
 	public String report() {
 		return String
-				.format("Win: %s/%s, lose: %s/%s, tie: %s/%s. AI search depth %s. Average AI response time: %sms",
+				.format("Win: %s/%s, lose: %s/%s, tie: %s/%s. AI search depth %s. Average AI response time: %sms. Average rounds: %s.",
 						numWin, totalGames, numLost, totalGames, numTie,
 						totalGames, depth, totalResponseTime / searchCount
-								/ Constants.NANO_TO_MS);
+								/ Constants.NANO_TO_MS, searchCount / totalGames);
 	}
 }
