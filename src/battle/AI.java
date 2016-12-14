@@ -13,14 +13,6 @@ public abstract class AI {
 		this.depth = depth;
 		
 	}
-
-//	public void updateBoard(boolean one, boolean increase, Direction d) {
-//		if (increase) {
-//			board.increaseSnake(one, d, false);
-//		} else {
-//			board.moveSnake(one, d, false);
-//		}
-//	}
 	
 	public abstract Direction nextStep(Direction d, boolean increase);
 	

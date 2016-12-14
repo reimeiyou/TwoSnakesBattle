@@ -12,8 +12,6 @@ public class RandomAI extends AI {
 	}
 	
 	public Direction nextStep(Direction d, boolean increase) {
-//		if (d != null)
-//			this.updateBoard(!first, increase, d);
 		ArrayList<Direction> dirs = this.possibleSteps(first, board);
 		if(dirs.isEmpty()){
 			return Direction.Down;

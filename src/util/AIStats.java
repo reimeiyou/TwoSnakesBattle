@@ -39,10 +39,6 @@ public class AIStats {
 		numWin++;
 	}
 
-//	public void setTotalGames(int evalTotalGames) {
-//		totalGames = evalTotalGames;
-//	}
-
 	public void lose() {
 		numLost++;
 	}

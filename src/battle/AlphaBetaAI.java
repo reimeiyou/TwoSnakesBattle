@@ -12,11 +12,8 @@ public class AlphaBetaAI extends AI {
 	}
 
 	public Direction nextStep(Direction d, boolean increase) {
-		// if(d != null)
-		// updateBoard(!first, increase, d);
 		SearchResult res = search(board, depth, true, Integer.MIN_VALUE,
 				Integer.MAX_VALUE);
-		// updateBoard(first, increase, res.dir);
 		return res.dir;
 	}
 
@@ -28,8 +25,6 @@ public class AlphaBetaAI extends AI {
 		int value1 = 0, value2 = 0;
 		value1 = possibleMoves(bd.snake1.getHead(), 3);
 		value2 = possibleMoves(bd.snake2.getHead(), 3);
-		// System.out.println("value1 " + value1 + " value2 " + value2);
-		// board.print();
 		if (firstplayer)
 			return (value1 - value2) * 10 + positionValue(bd.snake1.getHead());
 		return (value2 - value1) * 10 + positionValue(bd.snake2.getHead());
@@ -41,9 +36,6 @@ public class AlphaBetaAI extends AI {
 	}
 
 	private int possibleMoves(Coordinate c, int steps) {
-		// System.out.println("---------");
-		// board.print();
-		// System.out.println("Head x: " + c.x + ", y: " + c.y);
 		int counter = 0;
 		ArrayDeque<Coordinate> queue = new ArrayDeque<Coordinate>();
 		ArrayDeque<Integer> levels = new ArrayDeque<Integer>();
@@ -57,7 +49,6 @@ public class AlphaBetaAI extends AI {
 			if (lvl > steps)
 				continue;
 			counter++;
-			// System.out.println(cur.x + " " + cur.y);
 			if (cur.x > 0
 					&& board.board[cur.x - 1][cur.y] == CellType.Empty
 					&& !set.contains(new Coordinate(cur.x - 1, cur.y)
@@ -96,13 +87,10 @@ public class AlphaBetaAI extends AI {
 
 	private SearchResult search(Board bd, int depth, boolean maxplayer,
 			int alpha, int beta) {
-		System.out.println("Depth " + depth + " " + alpha + " " + beta);
 		int value = 0;
 		Direction res = Direction.Left;
 		if (depth == 0) {
 			value = evaluation(bd, first);
-			// System.out.println("First snake " + first + " depth " + depth +
-			// " value " + value);
 			return new SearchResult(res, value);
 		}
 		ArrayList<Direction> dirs = null;
@@ -111,20 +99,13 @@ public class AlphaBetaAI extends AI {
 			value = Integer.MIN_VALUE;
 			for (Direction d : dirs) {
 				Board tmp = new Board(bd);
-				// TODO round information
-//				System.out.println(first + "------MAX-----" + d.name()
-//						+ "---DP---" + depth);
-				// tmp.print();
 				tmp.increaseSnake(first, d, false);
-				// tmp.print();
 				int retval = search(tmp, depth - 1, false, alpha, beta).value;
 				if (retval > value) {
 					res = d;
 					value = retval;
 				}
 				alpha = Integer.max(alpha, value);
-				// System.out.println("Depth " + depth + " " + alpha + " " +
-				// beta);
 				if (beta <= alpha)
 					break;
 			}
@@ -133,26 +114,17 @@ public class AlphaBetaAI extends AI {
 			value = Integer.MAX_VALUE;
 			for (Direction d : dirs) {
 				Board tmp = new Board(bd);
-				// TODO round information
-//				System.out.println(!first + "-----MIN-----" + d.name()
-//						+ "---DP---" + depth);
-				// tmp.print();
 				tmp.increaseSnake(!first, d, false);
-				// tmp.print();
 				int retval = search(tmp, depth - 1, true, alpha, beta).value;
 				if (retval < value) {
 					res = d;
 					value = retval;
 				}
 				beta = Integer.min(beta, value);
-				// System.out.println("Depth " + depth + " " + alpha + " " +
-				// beta);
 				if (beta <= alpha)
 					break;
 			}
 		}
-		// System.out.println("First snake " + first + " depth " + depth +
-		// " value " + value);
 		return new SearchResult(res, value);
 	}
 
