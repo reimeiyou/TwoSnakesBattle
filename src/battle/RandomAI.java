@@ -3,6 +3,8 @@ package battle;
 import java.util.ArrayList;
 import java.util.Random;
 
+import util.Constants;
+
 public class RandomAI extends AI {
 
 	public RandomAI(Board board, boolean self, int depth) {
@@ -19,5 +21,10 @@ public class RandomAI extends AI {
 		Random rand = new Random();
 		int ii = (rand.nextInt() % dirs.size() + dirs.size()) % dirs.size();
 		return dirs.get(ii);
+	}
+
+	@Override
+	public String getName() {
+		return Constants.RANDOM_AI;
 	}
 }

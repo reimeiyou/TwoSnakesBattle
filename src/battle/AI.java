@@ -33,4 +33,6 @@ public abstract class AI {
 		}
 		return dirs;
 	}
+	
+	public abstract String getName();
 }

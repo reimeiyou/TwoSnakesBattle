@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import util.AIStats;
 import util.Constants;
 
 public class Game {
@@ -16,11 +17,16 @@ public class Game {
 	Board board;
 	JPanel buttons;
 	AI snake1AI, snake2AI;
+	AIStats AI1Stats, AI2Stats;
 	boolean running;
 	int round;
+	int totalEvals;
+	int finishedEval;
 	
-	public Game(int x, int y, int numObstacles) {
+	public Game(int x, int y, int numObstacles, int totalEvals) {
 		board = new Board(x, y, numObstacles);
+		this.totalEvals = totalEvals;
+//		finishedEval = 0;
 		round = 1;
 		initGUI();
 		initAI();
@@ -45,6 +51,10 @@ public class Game {
 		round = 0;
 	}
 	
+	public void finishedGameIncrement() {
+		finishedEval++;
+	}
+	
 	public static void main(String[] args) {
 		int x = Constants.HEIGHT, y = Constants.WIDTH, numObstacles = Constants.NUM_OF_OBSTACLES;
 		if (args.length == 4) {
@@ -52,53 +62,86 @@ public class Game {
 			y = Integer.parseInt(args[2]);
 			numObstacles = Integer.parseInt(args[3]);
 		}
-		Game game = new Game(x, y, numObstacles);
+		int totalEvals = 5;
+		Game game = new Game(x, y, numObstacles, totalEvals);
 		Direction snake1PrevDirection = null, snake2PrevDirection = null;
 		Direction snake1NextDirection, snake2NextDirection;
 		boolean snake1Moved = false, snake2Moved = false;
+		long startTime = 0l;
+		game.AI1Stats.setTotalGames(totalEvals);
+		game.AI2Stats.setTotalGames(totalEvals);
 		
 		while(true){
-			while (game.isRunning()) {	
-				boolean increase = game.shouldIncrease();
-				System.out.println(String.format(
-						"In round %s, snake 1's length is %s, snake 2's length is %s. Increase? %s", 
-						game.getRound(), game.board.snake1.getLength(),
-						game.board.snake2.getLength(), increase ? "true" : "false"));
-				
-				snake1NextDirection = game.snake1AI.nextStep(snake2PrevDirection, increase);
-				snake2NextDirection = game.snake2AI.nextStep(snake1PrevDirection, increase);
-				System.out.println("Snake 1's next step " + snake1NextDirection.toString() + " Snake 2's next step " + snake2NextDirection.toString());
-				
-				snake1Moved = increase ? 
-						game.board.increaseSnake(true, snake1NextDirection, false) : 
-						game.board.moveSnake(true, snake1NextDirection, false);
-				snake2Moved = increase ? 
-						game.board.increaseSnake(false, snake2NextDirection, false) : 
-						game.board.moveSnake(false, snake2NextDirection, false);	
-				
-				if (snake1Moved && snake2Moved) {
-					snake1PrevDirection = snake1NextDirection;
-					snake2PrevDirection = snake2NextDirection;
-					game.incrementRound();
-				} else {
-					snake1PrevDirection = null;
-					snake2PrevDirection = null;
-					game.setRunning(false);
-					game.resetRound();
-					if (!snake1Moved && !snake2Moved) {
-						game.showTieDialog();
+			while (game.finishedEval < totalEvals) {
+				while (game.isRunning()) {	
+					boolean increase = game.shouldIncrease();
+					System.out.println(String.format(
+							"In round %s, snake 1's length is %s, snake 2's length is %s. Increase? %s", 
+							game.getRound(), game.board.snake1.getLength(),
+							game.board.snake2.getLength(), increase ? "true" : "false"));
+					
+					startTime = System.nanoTime();
+					snake1NextDirection = game.snake1AI.nextStep(snake2PrevDirection, increase);
+					game.AI1Stats.addResponseTime(System.nanoTime() - startTime);
+					game.AI1Stats.search();
+					
+					startTime = System.nanoTime();
+					snake2NextDirection = game.snake2AI.nextStep(snake1PrevDirection, increase);
+					System.out.println("Snake 1's next step " + snake1NextDirection.toString() + " Snake 2's next step " + snake2NextDirection.toString());
+					game.AI2Stats.addResponseTime(System.nanoTime() - startTime);
+					game.AI2Stats.search();
+					
+					snake1Moved = increase ? 
+							game.board.increaseSnake(true, snake1NextDirection, false) : 
+							game.board.moveSnake(true, snake1NextDirection, false);
+					snake2Moved = increase ? 
+							game.board.increaseSnake(false, snake2NextDirection, false) : 
+							game.board.moveSnake(false, snake2NextDirection, false);	
+					
+					if (snake1Moved && snake2Moved) {
+						snake1PrevDirection = snake1NextDirection;
+						snake2PrevDirection = snake2NextDirection;
+						game.incrementRound();
 					} else {
-						if (!snake1Moved) {
-							game.showLoseDialog(true);
+						if (!snake1Moved && !snake2Moved) {
+							game.showTieDialog();
+							game.AI1Stats.tie();
+							game.AI2Stats.tie();
 						} else {
-							game.showLoseDialog(false);
+							if (!snake1Moved) {
+								game.showLoseDialog(true);
+								game.AI1Stats.lose();
+								game.AI2Stats.win();
+							} else {
+								game.showLoseDialog(false);
+								game.AI1Stats.win();
+								game.AI2Stats.lose();
+							}
 						}
+						game.finishedGameIncrement();
+						System.out.println("=============== Finished game: " + game.finishedEval + " ==============");
+						// reset game and board
+						snake1PrevDirection = null;
+						snake2PrevDirection = null;
+						game.setRunning(false);
+						game.resetRound();
+						game.board.initCellSnakesObstacles();
+						game.board.colorCellSnakesObstacles();
+					}
+					
+					try {
+						Thread.sleep(Constants.WAIT_TIME);
+					} catch (InterruptedException e) {
 					}
 				}
 				
-				try {
-					Thread.sleep(Constants.WAIT_TIME);
-				} catch (InterruptedException e) {
+				if (game.finishedEval > 0 && game.finishedEval < totalEvals) {
+					game.setRunning(true);
+				}
+				
+				if (game.finishedEval == totalEvals) {
+					System.out.println(game.snake1AI.getName() + " " + game.AI1Stats.report());
+					System.out.println(game.snake2AI.getName() + " " + game.AI2Stats.report());
 				}
 			}
 		}
@@ -142,7 +185,9 @@ public class Game {
 			System.out.println("1 AI Type " + snake1AIType + " 1 AI Level " + snake1AILevel + " 2 AI Type " + snake2AIType + " 2 AI Level " + snake2AILevel);
 		}
 		snake1AI = createAI(snake1AIType, snake1AILevel, board, true);
+		AI1Stats = new AIStats(snake1AILevel);
 		snake2AI = createAI(snake2AIType, snake2AILevel, board, false);
+		AI2Stats = new AIStats(snake2AILevel);
 	}
 	
 	public AI createAI(String AITYpe, String AILevel, Board board, boolean isFirst) {
@@ -168,6 +213,7 @@ public class Game {
 			public void mouseClicked(MouseEvent e) {
 				if (!isRunning()) {
 					setRunning(true);
+					finishedEval = 0;
 					System.out.println("Start is pressed. Is game running? " + isRunning());
 				}
 			}

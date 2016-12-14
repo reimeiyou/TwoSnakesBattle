@@ -2,6 +2,8 @@ package battle;
 
 import java.util.ArrayList;
 
+import util.Constants;
+
 
 public class AlphaBetaAI extends AI {
 
@@ -65,6 +67,11 @@ public class AlphaBetaAI extends AI {
 			}
 		}
 		return new SearchResult(res, value);
+	}
+
+	@Override
+	public String getName() {
+		return Constants.ALPHA_BETA_AI;
 	}
 }
 
