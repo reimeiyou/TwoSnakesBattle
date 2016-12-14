@@ -9,16 +9,24 @@ public class AIStats {
 	int searchCount;
 	int depth;
 
-	public AIStats(String depth) {
+	public AIStats(String depth, int totalGames) {
 		this.depth = Integer.parseInt(depth);
 		numWin = 0;
 		numLost = 0;
 		numTie = 0;
-		totalGames = 0;
+		this.totalGames = totalGames;
 		searchCount = 0;
 		totalResponseTime = 0l;
 	}
 
+	public void resetWinLostTieTimeSearchCount() {
+		numWin = 0;
+		numLost = 0;
+		numTie = 0;
+		totalResponseTime = 0l;
+		searchCount = 0;
+	}
+	
 	public void search() {
 		searchCount++;
 	}
@@ -31,9 +39,9 @@ public class AIStats {
 		numWin++;
 	}
 
-	public void setTotalGames(int evalTotalGames) {
-		totalGames = evalTotalGames;
-	}
+//	public void setTotalGames(int evalTotalGames) {
+//		totalGames = evalTotalGames;
+//	}
 
 	public void lose() {
 		numLost++;

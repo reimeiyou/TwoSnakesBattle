@@ -23,9 +23,8 @@ public class Game {
 	int totalEvals;
 	int finishedEval;
 	
-	public Game(int x, int y, int numObstacles, int totalEvals) {
+	public Game(int x, int y, int numObstacles) {
 		board = new Board(x, y, numObstacles);
-		this.totalEvals = totalEvals;
 		round = 1;
 		initGUI();
 		initAI();
@@ -33,6 +32,10 @@ public class Game {
 	
 	public boolean shouldIncrease() {
 		return (round <= 10 || round % 3 == 0) ? true : false;
+	}
+	
+	public int getNumOfTotalEvals() {
+		return Integer.parseInt(JOptionPane.showInputDialog("Please type in the number of games you want to evaluate. Integers only"));
 	}
 	
 	/**
@@ -50,7 +53,7 @@ public class Game {
 		round = 0;
 	}
 	
-	public void finishedGameIncrement() {
+	public void finishedEvalIncrement() {
 		finishedEval++;
 	}
 	
@@ -61,17 +64,14 @@ public class Game {
 			y = Integer.parseInt(args[2]);
 			numObstacles = Integer.parseInt(args[3]);
 		}
-		int totalEvals = 5;
-		Game game = new Game(x, y, numObstacles, totalEvals);
+		Game game = new Game(x, y, numObstacles);
 		Direction snake1PrevDirection = null, snake2PrevDirection = null;
 		Direction snake1NextDirection, snake2NextDirection;
 		boolean snake1Moved = false, snake2Moved = false;
 		long startTime = 0l;
-		game.AI1Stats.setTotalGames(totalEvals);
-		game.AI2Stats.setTotalGames(totalEvals);
 		
 		while(true){
-			while (game.finishedEval < totalEvals) {
+			while (game.finishedEval < game.totalEvals) {
 				while (game.isRunning() && !game.isPaused()) {	
 					boolean increase = game.shouldIncrease();
 					System.out.println(String.format(
@@ -117,7 +117,7 @@ public class Game {
 								game.AI2Stats.lose();
 							}
 						}
-						game.finishedGameIncrement();
+						game.finishedEvalIncrement();
 						System.out.println("=============== Finished game: " + game.finishedEval + " ==============");
 						// reset game and board
 						snake1PrevDirection = null;
@@ -134,11 +134,11 @@ public class Game {
 					}
 				}
 				
-				if (game.finishedEval > 0 && game.finishedEval < totalEvals) {
+				if (game.finishedEval > 0 && game.finishedEval < game.totalEvals) {
 					game.setRunning(true);
 				}
 				
-				if (game.finishedEval == totalEvals) {
+				if (game.finishedEval == game.totalEvals) {
 					System.out.println(game.snake1AI.getName() + " " + game.AI1Stats.report());
 					System.out.println(game.snake2AI.getName() + " " + game.AI2Stats.report());
 				}
@@ -167,26 +167,34 @@ public class Game {
 	}
 	
 	public void initAI() {
+		this.totalEvals = getNumOfTotalEvals();
+
 		String[] AITypes = {Constants.ALPHA_BETA_AI, Constants.RANDOM_AI, Constants.BASIC_AI};
-		String[] AILevels = {Constants.LEVEL_1, Constants.LEVEL_2, Constants.LEVEL_3};
 		String snake1AIType = null, snake1AILevel = null, snake2AIType = null, snake2AILevel = null;
 		
 		while (snake1AIType == null || snake1AILevel == null || snake2AIType == null || snake2AILevel == null) {
 			JOptionPane.showMessageDialog(frame, "Please choose an AI and its smartness for each snake. All of them should be specified.");
 			snake1AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 1", 
 					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
-			snake1AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 1", 
-					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+			snake1AILevel = getAILevel(snake1AIType);
 			snake2AIType = (String) JOptionPane.showInputDialog(frame, "Choose an AI that controls Snake 2", 
 					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AITypes, AITypes[0]);
-			snake2AILevel = (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI that controls Snake 2", 
-					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+			snake2AILevel = getAILevel(snake1AIType);
 			System.out.println("1 AI Type " + snake1AIType + " 1 AI Level " + snake1AILevel + " 2 AI Type " + snake2AIType + " 2 AI Level " + snake2AILevel);
 		}
 		snake1AI = createAI(snake1AIType, snake1AILevel, board, true);
-		AI1Stats = new AIStats(snake1AILevel);
+		AI1Stats = new AIStats(snake1AILevel, totalEvals);
 		snake2AI = createAI(snake2AIType, snake2AILevel, board, false);
-		AI2Stats = new AIStats(snake2AILevel);
+		AI2Stats = new AIStats(snake2AILevel, totalEvals);
+	}
+	
+	public String getAILevel(String AIType) {
+		if (AIType.equals(Constants.ALPHA_BETA_AI)) {
+			String[] AILevels = {Constants.LEVEL_1, Constants.LEVEL_2, Constants.LEVEL_3};
+			return (String) JOptionPane.showInputDialog(frame, "Choose the smartness of the AI you just choosed", 
+					"Choosing AI", JOptionPane.QUESTION_MESSAGE, null, AILevels, AILevels[0]);
+		}
+		return "0";
 	}
 	
 	public AI createAI(String AITYpe, String AILevel, Board board, boolean isFirst) {
@@ -203,6 +211,7 @@ public class Game {
 		}
 	}
 	
+	
 	private void initButtons() {
 		buttons = new JPanel();
 		
@@ -214,6 +223,8 @@ public class Game {
 					running = true;
 					paused = false;
 					finishedEval = 0;
+					AI1Stats.resetWinLostTieTimeSearchCount();
+					AI2Stats.resetWinLostTieTimeSearchCount();
 					System.out.println("Start is pressed. Is game running? " + isRunning());
 				}
 			}
@@ -223,11 +234,9 @@ public class Game {
 		pause.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-//				if (isRunning()) {
 					running = false;
 					paused = true;
 					System.out.println("Pause is pressed. Is game running? " + isRunning());
-//				}
 			}
 		});
 		
